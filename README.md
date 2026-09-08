@@ -28,7 +28,7 @@ npm test
 npm run build
 ```
 
-`npm run build` 默认产出 Cloudflare Worker 构建。在 Vercel 上会检测 `VERCEL` 环境变量，改用 Nitro 生成 `.vercel/output`。三维模型与贴图在生产环境从本仓库的 GitHub 文件加载，因此 Vercel 构建不必上传约 70MB 的 `public/museum` 二进制资源。
+`npm run build` 默认产出 Cloudflare Worker 构建。在 Vercel 上会检测 `VERCEL` 环境变量，改用 Nitro 生成 `.vercel/output`。三维模型与贴图随站点一起发布到 Vercel，浏览器从同一域名加载 `/museum/` 资源。
 
 ## 目录
 
