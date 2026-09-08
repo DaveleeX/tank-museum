@@ -1,4 +1,4 @@
-import tailwindcss from '@tailwindcss/postcss';
+import tailwindcss from '@tailwindcss/vite';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
 const hostingConfig: { d1: string | null; r2: string | null } = { d1: null, r2: null };
@@ -41,7 +41,7 @@ export default defineConfig(async () => {
   process.env.WRANGLER_LOG_PATH ??= '.wrangler/logs';
   process.env.MINIFLARE_REGISTRY_PATH ??= '.wrangler/registry';
 
-  const plugins = [vinext()];
+  const plugins = [tailwindcss(), vinext()];
 
   if (isVercel) {
     const { nitro } = await import('nitro/vite');
@@ -57,7 +57,6 @@ export default defineConfig(async () => {
   }
 
   return {
-    css: { postcss: { plugins: [tailwindcss()] } },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
       : undefined,
