@@ -9,6 +9,7 @@ import { createVisitors } from './museum-visitors';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { museumAsset } from './museum-assets';
 export type MuseumController={view:(index:number)=>void;tour:(running:boolean)=>void;walk:()=>void;step:(key:string)=>void;night:(enabled:boolean)=>void;dispose:()=>void};
 type CameraRecord={name:string;type:string;position:number[];quaternion:number[];orthoScale:number;lens:number;sensorWidth:number};
 type RoutePoint={frame:number;eye:number[];look_at:number[]};
@@ -58,8 +59,8 @@ export async function createMuseum(container:HTMLElement,cb:Callbacks,signal:Abo
  const releaseModel=()=>{model?.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms){if('map'in m)(m.map as THREE.Texture|null)?.dispose();m.dispose()}}})};
  const dispose=()=>{if(disposed)return;disposed=true;cancelAnimationFrame(raf);ro.disconnect();controls.dispose();renderer.domElement.removeEventListener('pointerdown',down);renderer.domElement.removeEventListener('pointermove',pointerMove);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',blur);window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',blur);surfaces?.dispose();releaseModel();visitors.dispose();lighting.dispose();composer.dispose();bloom.dispose();outputPass.dispose();renderer.dispose();renderer.domElement.remove()};signal.addEventListener('abort',dispose,{once:true});
  try{
-  const response=await fetch('/museum/cameras.json',{signal});if(!response.ok)throw new Error('Camera data could not be loaded');const data=await response.json() as {cameras:CameraRecord[];route:RoutePoint[]};records=data.cameras;route=data.route;
-  const loader=new GLTFLoader();loader.setMeshoptDecoder(MeshoptDecoder);model=(await loader.loadAsync('/museum/model-hybrid/museum.gltf',e=>{if(e.total&&!disposed)cb.progress(Math.min(95,Math.round(e.loaded/e.total*95)))})).scene;
+  const response=await fetch(museumAsset('/museum/cameras.json'),{signal});if(!response.ok)throw new Error('Camera data could not be loaded');const data=await response.json() as {cameras:CameraRecord[];route:RoutePoint[]};records=data.cameras;route=data.route;
+  const loader=new GLTFLoader();loader.setMeshoptDecoder(MeshoptDecoder);model=(await loader.loadAsync(museumAsset('/museum/model-hybrid/museum.gltf'),e=>{if(e.total&&!disposed)cb.progress(Math.min(95,Math.round(e.loaded/e.total*95)))})).scene;
   if(disposed){releaseModel();return {view,tour,walk,step:key=>move(key,.7),night:lighting.setNight,dispose}}
   model.traverse(o=>{if(o instanceof THREE.Mesh){const materials=Array.isArray(o.material)?o.material:[o.material];for(const m of materials){if('map'in m&&m.map)(m.map as THREE.Texture).anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());m.toneMapped=true;}}});
   surfaces=await bindMuseumMaterials(model,renderer,signal);if(disposed){surfaces.dispose();releaseModel();return {view,tour,walk,step:key=>move(key,.7),night:lighting.setNight,dispose};}
